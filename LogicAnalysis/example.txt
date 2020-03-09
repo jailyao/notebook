@@ -1,3 +1,3 @@
-YXItem01 = YX01 && YX02 || YX03 && !YX04
-YXItem02 = YX01 && (YX02 || YX03) && !YX04
-YXItem03 = YX01 && ((YX02 || YX03) && !YX04)
+YXItem01 = YX01 & YX02 | YX03 | !YX04
+YXItem02 = YX01 | (YX02 & (YX03 & YX04)) | !YX05
+YXItem03 = !YX01 & !(!(YX02 | YX03) | !YX04)
