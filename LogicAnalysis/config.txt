@@ -1,0 +1,8 @@
+YXItem01 = YX01;
+YXItem02 = YX01 & YX02;
+YXItem03 = YX01 & (YX02 | YX03);
+YXItem04 = YX01 & (YX02 | YX03) & !YX04;
+YXItem05 = YX01 & (((YX02 | YX03) & !YX04) | YX05);
+YXItem06 = YX01 & !(((YX02 | YX03) & !YX04) | YX05);
+YXItem07 = !YX01 & !(((YX02 | YX03) & !YX04) | YX05);
+YXItem08 = !(YX01 & !(((YX02 | YX03) & !YX04) | YX05));

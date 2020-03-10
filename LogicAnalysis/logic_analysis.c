@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-#define FILE_PATH "./example.txt"
+#define FILE_PATH "./config.txt"
+#define MAX_YX_POINTS   100
+#define MAX_YX_ITEMS    100
 #define MAX_LINE_CHARS  100
 #define MAX_LINE_OPERS  100
-
-char YXItems[10] = {-1};
-char YXs[10] = {0};
+#define MAX_EXPR_SIZE   100
 
 enum _tokens {
     NONE = 0,
@@ -16,26 +16,27 @@ enum _tokens {
 
 /***************************************************
 * @brief calculate the expression
-* @param expression --expression created from the text
-* @param expPtr --pointer to the expression stack
-@ @return result of the expression
+* @param expr --expression created from the text
+* @param exprPtr --pointer to the expression stack
+* @param yx --yx status
+* @return result of the expression
 ****************************************************/
-char calc_expression(char *expression, int expPtr) {
+char CalcExpr(int *expr, int exprPtr, char *yx) {
     char result[MAX_LINE_CHARS] = {0};
     int retPtr = -1;
 
-    for (int i = 0; i <= expPtr; i++) {
-        if (expression[i] < 2) {
-            result[++retPtr] = expression[i];
-        } else if (expression[i] == '&') {
+    for (int i = 0; i <= exprPtr; i++) {
+        if (expr[i] >= 128) {
+            result[++retPtr] = yx[expr[i] - 128];
+        } else if (expr[i] == '&') {
             int a = result[retPtr--];
             int b = result[retPtr];
             result[retPtr] = a && b;
-        } else if (expression[i] == '|') {
+        } else if (expr[i] == '|') {
             int a = result[retPtr--];
             int b = result[retPtr];
             result[retPtr] = a || b;
-        } else if (expression[i] == '!') {
+        } else if (expr[i] == '!') {
             int a = !result[retPtr];
             result[retPtr] = a;
         }
@@ -44,21 +45,20 @@ char calc_expression(char *expression, int expPtr) {
 }
 
 /***************************************************
-* @brief analysis the text to create an expression
+* @brief parse the text to extract an expression
 * @param l --a line of config file
-* @param yxArr --yx status array
-* @param expression --stack to keep the expression
-* @param expPtr --pointer to the top of the stack
-@ @return index --index of the YXItems
+* @param expr --stack to keep the expression
+* @param exprPtr --pointer to the top of the stack
+* @return index --index of the YXItem
 ****************************************************/
-int line_analysis(char *l, char *yxArr, char *expression, int *expPtr) {
-    char ops[MAX_LINE_OPERS];
-    int opsPtr = -1;
+int ParseText(char *l, int *expr, int *exprPtr) {
+    char oper[MAX_LINE_OPERS];
+    int operPtr = -1;
     int ptr = -1;
     int index = 0;
     int tk = NONE;
 
-    while ((*l) != '\n' && (*l) != '\0') {
+    while ((*l) != ';') {
         if (((*l) >= 'a' && (*l) <= 'z') || ((*l) >= 'A' && (*l) <= 'Z')) {
             if (tk == NONE || tk == RET)
                 tk = RET;
@@ -71,64 +71,61 @@ int line_analysis(char *l, char *yxArr, char *expression, int *expPtr) {
             if (tk == RET) 
                 index = a;
             else if (tk == ID)
-                expression[++ptr] = yxArr[a] ? 1 : 0;
+                expr[++ptr] = a + 128;
         } else if ((*l) == '&') {
-            if (opsPtr != -1 && ops[opsPtr] != '(') 
-                expression[++ptr] = ops[opsPtr--];
-            ops[++opsPtr] = '&';
+            if (operPtr != -1 && oper[operPtr] != '(') 
+                expr[++ptr] = oper[operPtr--];
+            oper[++operPtr] = '&';
             l++;
         } else if ((*l) == '|') {
-            if (opsPtr != -1 && ops[opsPtr] != '(')
-                expression[++ptr] = ops[opsPtr--];
-            ops[++opsPtr] = '|';
+            if (operPtr != -1 && oper[operPtr] != '(')
+                expr[++ptr] = oper[operPtr--];
+            oper[++operPtr] = '|';
             l++;
         } else if ((*l) == '!') {
-            ops[++opsPtr] = '!';
+            oper[++operPtr] = '!';
             l++;
         } else if ((*l) == '(') {
-            ops[++opsPtr] = '(';
+            oper[++operPtr] = '(';
             l++;
         } else if ((*l) == ')') {
-            while (ops[opsPtr] != '(') 
-                expression[++ptr] = ops[opsPtr--];
+            while (oper[operPtr] != '(') 
+                expr[++ptr] = oper[operPtr--];
             l++;
         } else {
             tk = OTS;
             l++;
         }
     }
-    /** pop all operators remain in the ops[] stack */
-    while (opsPtr != -1)
-        expression[++ptr] = ops[opsPtr--];
-    *expPtr = ptr;
+    /** pop all operators remain in the oper[] stack */
+    while (operPtr != -1)
+        expr[++ptr] = oper[operPtr--];
+    *exprPtr = ptr;
 
     return index;
 }
 
 int main(void) {
-    FILE *f = fopen(FILE_PATH, "r");
+    char YXItem[MAX_YX_ITEMS] = {-1};
+    char YX[MAX_YX_POINTS] = {0, 1, 0, 1, 0};
     char line[MAX_LINE_CHARS];
+    int expr[MAX_EXPR_SIZE] = {0};
+
     int lines = 0;
-    char expression[MAX_LINE_CHARS] = {0};
-    int expPtr = -1;
+    int exprPtr = -1;
     int index = 0;
 
-    YXs[0] = 1;
-    YXs[1] = 0;
-    YXs[2] = 1;
-    YXs[3] = 0;
-    YXs[4] = 1;
-    YXs[5] = 0;
-
+    FILE *f = fopen(FILE_PATH, "r");
     while (fgets(line, MAX_LINE_CHARS, f)) {
-        printf("%s\n", line);
-        index = line_analysis(line, YXs, expression, &expPtr);
-        YXItems[index] = calc_expression(expression, expPtr);
+        printf("%s", line);
+        index = ParseText(line, expr, &exprPtr);
+        YXItem[index] = CalcExpr(expr, exprPtr, YX);
         lines++;
     }
 
+    printf("\n");
     for (int i = 1; i <= lines; i++) 
-        printf("%d\n", YXItems[i]);
+        printf("%d\n", YXItem[i]);
 
     fclose(f);
 
