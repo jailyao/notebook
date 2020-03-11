@@ -5,8 +5,6 @@
 #define MAX_YX_POINTS   100
 #define MAX_YX_ITEMS    100
 #define MAX_LINE_CHARS  100
-#define MAX_LINE_OPERS  100
-#define MAX_EXPR_SIZE   100
 #define MAX_STACK_SIZE  100
 
 enum _tokens {
