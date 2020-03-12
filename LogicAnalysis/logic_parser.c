@@ -3,9 +3,9 @@
 
 #define FILE_PATH "./config.txt"
 #define MAX_YX_POINTS   100
-#define MAX_YX_ITEMS    100
+#define MAX_YX_ITEMS    8
 #define MAX_LINE_CHARS  100
-#define MAX_STACK_SIZE  100
+#define MAX_STACK_SIZE  32
 
 enum _tokens {
     NONE = 0,
@@ -112,7 +112,10 @@ int ParseText(Stack expr, char *l) {
             l++;
         } else if ((*l) >= '0' && (*l) <= '9') {
             int a = (*l++) - '0';
-            a = a * 10 + (*l++) - '0';
+            while ((*l) >= '0' && (*l) <= '9') {
+                a = a * 10 + (*l++) - '0';
+            }
+            
             if (tk == RET) 
                 index = a;
             else if (tk == ID)
