@@ -153,8 +153,9 @@ int ParseText(Stack expr, char *l) {
 }
 
 int main(void) {
-    char YXItem[MAX_YX_ITEMS] = {-1};
+    char YXItem[MAX_YX_ITEMS] = {0};
     char YX[MAX_YX_POINTS] = {0, 1, 0, 1, 0};
+    char YX2[MAX_YX_POINTS] = {0, 1, 1, 0, 1};
     char line[MAX_LINE_CHARS];
     Stack exprStack[MAX_YX_ITEMS];
 
@@ -173,8 +174,15 @@ int main(void) {
     printf("\n");
     for (int i = 1; i <= lines; i++) {
         YXItem[i] = CalcExpr(exprStack[i], YX);
-        printf("%d\n", YXItem[i]);
+        printf("%d ", YXItem[i]);
     }
+
+    printf("\n");
+    for (int i = 1; i <= lines; i++) {
+        YXItem[i] = CalcExpr(exprStack[i], YX2);
+        printf("%d ", YXItem[i]);
+    }
+    printf("\n");
 
     fclose(f);
 

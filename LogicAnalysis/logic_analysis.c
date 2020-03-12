@@ -67,7 +67,10 @@ int ParseText(char *l, int *expr, int *exprPtr) {
             l++;
         } else if ((*l) >= '0' && (*l) <= '9') {
             int a = (*l++) - '0';
-            a = a * 10 + (*l++) - '0';
+            while ((*l) >= '0' && (*l) <= '9') {
+                a = a * 10 + (*l++) - '0';
+            }
+            
             if (tk == RET) 
                 index = a;
             else if (tk == ID)
